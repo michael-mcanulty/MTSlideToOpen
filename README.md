@@ -1,33 +1,29 @@
 # MTSlideToOpen
 A simple SlideToUnlock iOS UI component
 
-<a href="url"><img src="https://raw.githubusercontent.com/lemanhtien/MTSlideToOpen/master/Screenshot.png" align="center" height="500" ></a>
+<a href="url"><img src="https://raw.githubusercontent.com/michael-mcanulty/MTSlideToOpen/master/Screenshot.png" align="center" height="500" ></a>
 
 
 ## Requirements
 * Swift 5.0
 * iOS 9.0 or later
 
-## Installation
-
-#### Using CocoaPod
-Just add to your Pod file
-> pod 'MTSlideToOpen'
-
 #### Manual install
 
-Drag and drop folder `Source` to your project. Drag and drop to folder.
-
+Drag and drop file `MTSlideToOpenView.swift` to your project.
 
 
 ## Usage
 ```
-  let slide = MTSlideToOpenView(frame: CGRect(x: 26, y: 400, width: 317, height: 56))
-  slide.sliderViewTopDistance = 6
-  slide.sliderCornerRadious = 22
-  slide.delegate = self
-  slide.defaultLabelText = "Slide To Unlock"
-  slide.thumnailImageView.image = ic_arrow
+let slide = MTSlideToOpenView(frame: CGRect(x: 30, y: 300, width: 340, height: 80), knobText: "SOS")
+slide.sliderViewTopDistance = 10
+slide.delegate = self
+slide.defaultThumbnailColor = Color.red.create;
+slide.defaultKnobTextSize = 26.0
+slide.defaultSliderBackgroundColor = Color.red.create.withAlphaComponent(0.3).lighter()
+slide.defaultSlidingColor = UIColor.white
+slide.defaultLabelText = "Slide To Initiate SOS"
+self.view.addSubview(slide);
 ```
 
 ## SwiftUI version
