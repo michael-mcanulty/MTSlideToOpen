@@ -18,9 +18,9 @@ Drag and drop file `MTSlideToOpenView.swift` to your project.
 let slide = MTSlideToOpenView(frame: CGRect(x: 30, y: 300, width: 340, height: 80), knobText: "SOS")
 slide.sliderViewTopDistance = 10
 slide.delegate = self
-slide.defaultThumbnailColor = Color.red.create;
+slide.defaultThumbnailColor = UIColor.red
 slide.defaultKnobTextSize = 26.0
-slide.defaultSliderBackgroundColor = Color.red.create.withAlphaComponent(0.3).lighter()
+slide.defaultSliderBackgroundColor = UIColor.red
 slide.defaultSlidingColor = UIColor.white
 slide.defaultLabelText = "Slide To Initiate SOS"
 self.view.addSubview(slide);
