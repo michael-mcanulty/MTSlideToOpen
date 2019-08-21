@@ -22,12 +22,35 @@ import UIKit
         let label = UILabel()
         return label
     }()
-    public let thumnailImageView: UIImageView = {
+    
+    private func textToImage(name: String?) -> UIImage? {
+        let h = self.bounds.height;
+        let frame = CGRect(x: 0, y: 0, width: h, height: h);
+        let nameLabel = UILabel(frame: frame)
+        nameLabel.textAlignment = .center
+        nameLabel.backgroundColor = self.defaultThumbnailColor
+        nameLabel.textColor = self.defaultThumbnailTextColor;
+        nameLabel.font = UIFont.boldSystemFont(ofSize: self.defaultKnobTextSize)
+        nameLabel.text = name
+        UIGraphicsBeginImageContext(frame.size)
+        
+        if let currentContext = UIGraphicsGetCurrentContext() {
+            nameLabel.layer.render(in: currentContext)
+            let nameImage: UIImage? = UIGraphicsGetImageFromCurrentImageContext();
+            
+            return nameImage
+        }
+        return nil
+    }
+    public let thumbnailImageView: UIImageView = {
         let view = MTRoundImageView()
-        view.isUserInteractionEnabled = true        
+        view.isUserInteractionEnabled = true
+        view.clipsToBounds = true;
         view.contentMode = .center
+        
         return view
     }()
+
     public let sliderHolderView: UIView = {
         let view = UIView()
         return view
@@ -41,6 +64,7 @@ import UIKit
         return view
     }()
     // MARK: Public properties
+    public var text: String?
     public weak var delegate: MTSlideToOpenDelegate?
     public var animationVelocity: Double = 0.2
     public var sliderViewTopDistance: CGFloat = 8.0 {
@@ -78,6 +102,7 @@ import UIKit
             sliderTextLabel.isHidden = !showSliderText
         }
     }
+
     public var animationChangedEnabledBlock:((Bool) -> Void)?
     // MARK: Default styles
     public var sliderCornerRadius: CGFloat = 30.0 {
@@ -92,6 +117,7 @@ import UIKit
             sliderTextLabel.textColor = defaultSliderBackgroundColor
         }
     }
+    public var defaultKnobTextSize: CGFloat = 20.0
     
     public var defaultSlidingColor:UIColor = UIColor(red:25.0/255, green:155.0/255, blue:215.0/255, alpha:0.7) {
         didSet {
@@ -99,11 +125,18 @@ import UIKit
             textLabel.textColor = defaultSlidingColor
         }
     }
-    public var defaultThumbnailColor:UIColor = UIColor(red:25.0/255, green:155.0/255, blue:215.0/255, alpha:1) {
+    public var defaultThumbnailColor:UIColor = UIColor.clear {
         didSet {
-            thumnailImageView.backgroundColor = defaultThumbnailColor
+            thumbnailImageView.backgroundColor = defaultThumbnailColor
         }
     }
+    
+    public var defaultThumbnailTextColor:UIColor = UIColor.white {
+        didSet {
+            thumbnailImageView.backgroundColor = defaultThumbnailTextColor
+        }
+    }
+    
     public var defaultLabelText: String = "Swipe to open" {
         didSet {
             textLabel.text = defaultLabelText
@@ -125,13 +158,14 @@ import UIKit
     private var xPositionInThumbnailView: CGFloat = 0
     private var xEndingPoint: CGFloat {
         get {
-            return (self.view.frame.maxX - thumnailImageView.bounds.width - thumbnailViewStartingDistance)
+            return (self.view.frame.maxX - thumbnailImageView.bounds.width - thumbnailViewStartingDistance)
         }
     }
     private var isFinished: Bool = false
     
-    override public init(frame: CGRect) {
+    public init(frame: CGRect, knobText: String? = nil) {
         super.init(frame: frame)
+        self.text = knobText
         setupView()
     }
     private var panGestureRecognizer: UIPanGestureRecognizer!
@@ -143,23 +177,26 @@ import UIKit
     
     private func setupView() {
         self.addSubview(view)
-        view.addSubview(thumnailImageView)
+        if(thumbnailImageView.image == nil && self.text != nil && !text!.isEmpty){
+            thumbnailImageView.image = textToImage(name: self.text!);
+        }
+        view.addSubview(thumbnailImageView)
         view.addSubview(sliderHolderView)
         view.addSubview(draggedView)
         draggedView.addSubview(sliderTextLabel)
         sliderHolderView.addSubview(textLabel)
-        view.bringSubviewToFront(self.thumnailImageView)
+        view.bringSubviewToFront(self.thumbnailImageView)
         setupConstraint()
         setStyle()
         // Add pan gesture
         panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(self.handlePanGesture(_:)))
         panGestureRecognizer.minimumNumberOfTouches = 1
-        thumnailImageView.addGestureRecognizer(panGestureRecognizer)
+        thumbnailImageView.addGestureRecognizer(panGestureRecognizer)
     }
     
     private func setupConstraint() {
         view.translatesAutoresizingMaskIntoConstraints = false
-        thumnailImageView.translatesAutoresizingMaskIntoConstraints = false
+        thumbnailImageView.translatesAutoresizingMaskIntoConstraints = false
         sliderHolderView.translatesAutoresizingMaskIntoConstraints = false
         textLabel.translatesAutoresizingMaskIntoConstraints = false
         sliderTextLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -170,12 +207,12 @@ import UIKit
         view.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         view.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
         // Setup for circle View
-        leadingThumbnailViewConstraint = thumnailImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor)
+        leadingThumbnailViewConstraint = thumbnailImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor)
         leadingThumbnailViewConstraint?.isActive = true
-        topThumbnailViewConstraint = thumnailImageView.topAnchor.constraint(equalTo: view.topAnchor, constant: thumbnailViewTopDistance)
+        topThumbnailViewConstraint = thumbnailImageView.topAnchor.constraint(equalTo: view.topAnchor, constant: thumbnailViewTopDistance)
         topThumbnailViewConstraint?.isActive = true
-        thumnailImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
-        thumnailImageView.heightAnchor.constraint(equalTo: thumnailImageView.widthAnchor).isActive = true
+        thumbnailImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        thumbnailImageView.heightAnchor.constraint(equalTo: thumbnailImageView.widthAnchor).isActive = true
         // Setup for slider holder view
         topSliderConstraint = sliderHolderView.topAnchor.constraint(equalTo: view.topAnchor, constant: sliderViewTopDistance)
         topSliderConstraint?.isActive = true
@@ -197,12 +234,12 @@ import UIKit
         draggedView.leadingAnchor.constraint(equalTo: sliderHolderView.leadingAnchor).isActive = true
         draggedView.topAnchor.constraint(equalTo: sliderHolderView.topAnchor).isActive = true
         draggedView.centerYAnchor.constraint(equalTo: sliderHolderView.centerYAnchor).isActive = true
-        trailingDraggedViewConstraint = draggedView.trailingAnchor.constraint(equalTo: thumnailImageView.trailingAnchor, constant: thumbnailViewStartingDistance)
+        trailingDraggedViewConstraint = draggedView.trailingAnchor.constraint(equalTo: thumbnailImageView.trailingAnchor, constant: thumbnailViewStartingDistance)
         trailingDraggedViewConstraint?.isActive = true
     }
     
     private func setStyle() {
-        thumnailImageView.backgroundColor = defaultThumbnailColor
+        thumbnailImageView.backgroundColor = defaultThumbnailColor
         textLabel.text = defaultLabelText
         textLabel.font = textFont
         textLabel.textColor = defaultSlidingColor
@@ -223,7 +260,7 @@ import UIKit
     }
     
     private func isTapOnThumbnailViewWithPoint(_ point: CGPoint) -> Bool{
-        return self.thumnailImageView.frame.contains(point)
+        return self.thumbnailImageView.frame.contains(point)
     }
     
     private func updateThumbnailXPosition(_ x: CGFloat) {
@@ -297,8 +334,9 @@ import UIKit
 }
 
 
-class MTRoundImageView: UIImageView {
-    override func layoutSubviews() {
+public class MTRoundImageView: UIImageView {
+    
+    override public func layoutSubviews() {
         super.layoutSubviews()
         let radius: CGFloat = self.bounds.size.width / 2.0
         self.layer.cornerRadius = radius
